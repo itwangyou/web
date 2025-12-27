@@ -1,1 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
 
+  <head>
+    <meta charset="utf-8">
+    <title>AES-256-GCM 文件加密/解密</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./style.css">
+    <script src="./app.js" defer></script>
+  </head>
+
+  <body>
+    <div class="shell">
+      <h1>AES-256-GCM 文件加密/解密</h1>
+      <p class="subtitle">
+        使用 AES-256-GCM + PBKDF2-SHA256 随机 16B 盐 12B IV Tag 固定 128 bit 头部作为 AAD 认证
+        所有运算均在本地浏览器中完成 不上传服务器
+      </p>
+
+      <!-- tabs -->
+      <div class="tabs" role="tablist">
+        <button class="tab" id="tab-enc" role="tab" aria-selected="true" aria-controls="pane-enc">加密文件</button>
+        <button class="tab" id="tab-dec" role="tab" aria-selected="false" aria-controls="pane-dec">解密文件</button>
+      </div>
+
+      <!-- Encrypt pane -->
+      <section class="pane" id="pane-enc" aria-hidden="false" role="tabpanel" aria-labelledby="tab-enc">
+        <!-- Step 1 -->
+        <div class="step">
+          <div class="step-title"><span>1</span>选择要加密的文件</div>
+          <div class="file-box">
+            <div class="file-main">点击下方选择文件</div>
+            <input type="file" id="file">
+            <div class="file-sub" id="file-info">尚未选择文件</div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step">
+          <div class="step-title"><span>2</span>设置加密口令</div>
+          <label for="pass">加密口令</label>
+          <input type="password" id="pass" autocomplete="new-password" inputmode="text">
+          <div class="muted" id="pass-strength" style="margin-top:4px;"></div>
+          <div class="caps-hint" id="pass-caps-hint">检测到 CapsLock 可能已开启 注意大小写</div>
+          <div class="inline-actions">
+            <button type="button" id="btn-pass-toggle">👁 显示/隐藏口令</button>
+            <button type="button" id="btn-pass-gen">🎲 生成强口令</button>
+            <button type="button" id="btn-pass-copy">📋 复制当前口令</button>
+          </div>
+        </div>
+
+        <!-- Step 3 高级 -->
+        <div class="step">
+          <div class="advanced-toggle" id="adv-enc-toggle">
+            <div><span>3 高级选项</span><br><small>如无特殊需求 可保持默认</small></div>
+            <div class="chevron" id="adv-enc-chevron">▼</div>
+          </div>
+          <div class="advanced-body" id="adv-enc-body" aria-hidden="true">
+            <label for="iterations">PBKDF2 迭代次数</label>
+            <input type="number" id="iterations" min="50000" max="5000000" step="1000" value="1000000">
+            <div class="inline-actions" style="margin-top:4px;">
+              <button type="button" id="btn-autotune">⚙ 自动测算迭代次数</button>
+            </div>
+            <label style="margin-top:8px;">
+              <input type="checkbox" id="hide-name">
+              隐藏原始文件名 只记录空文件名
+            </label>
+            <div class="muted">调整这些参数会影响安全性与性能 请在了解含义的情况下修改</div>
+          </div>
+        </div>
+
+        <!-- actions -->
+        <div class="actions">
+          <button class="btn-primary" id="btn-encrypt">🔐 开始加密</button>
+          <button class="btn-secondary" id="btn-clear-enc">🧹 手动清空</button>
+          <div class="status-text" id="status-enc">就绪</div>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" id="prog-enc"></div>
+        </div>
+
+        <!-- logs -->
+        <div class="log-toggle">
+          <label><input type="checkbox" id="log-enc-toggle"> 显示详细日志</label>
+          <button class="log-btn" id="btn-log-enc-copy">复制日志</button>
+        </div>
+        <pre class="log-box" id="log-enc" aria-hidden="true"></pre>
+      </section>
+
+      <!-- Decrypt pane -->
+      <section class="pane" id="pane-dec" aria-hidden="true" role="tabpanel" aria-labelledby="tab-dec">
+        <!-- Step 1 -->
+        <div class="step">
+          <div class="step-title"><span>1</span>选择加密文件</div>
+          <div class="file-box">
+            <div class="file-main">选择 .aeg 密文文件</div>
+            <input type="file" id="enc" accept=".aeg,application/octet-stream">
+            <div class="file-sub" id="enc-info">尚未选择文件</div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step">
+          <div class="step-title"><span>2</span>输入解密口令</div>
+          <label for="pass2">解密口令</label>
+          <input type="password" id="pass2" autocomplete="current-password" inputmode="text">
+          <div class="muted" id="pass2-strength" style="margin-top:4px;"></div>
+          <div class="caps-hint" id="pass2-caps-hint">检测到 CapsLock 可能已开启 注意大小写</div>
+          <div class="inline-actions">
+            <button type="button" id="btn-pass2-toggle">👁 显示/隐藏口令</button>
+          </div>
+        </div>
+
+        <!-- Step 3 高级 -->
+        <div class="step">
+          <div class="advanced-toggle" id="adv-dec-toggle">
+            <div><span>3 高级信息</span><br><small>查看头部元数据与参数</small></div>
+            <div class="chevron" id="adv-dec-chevron">▼</div>
+          </div>
+          <div class="advanced-body" id="adv-dec-body" aria-hidden="true">
+            <label>头部元数据 只读</label>
+            <input type="text" id="meta-info" readonly>
+            <div class="inline-actions" style="margin-top:4px;">
+              <button type="button" id="btn-meta-copy">📋 复制元数据</button>
+              <button type="button" id="btn-inspect">🧐 仅解析头部 不解密</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" id="btn-decrypt">🔓 开始解密</button>
+          <button class="btn-secondary" id="btn-clear-dec">🧹 手动清空</button>
+          <div class="status-text" id="status-dec">就绪</div>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" id="prog-dec"></div>
+        </div>
+
+        <div class="log-toggle">
+          <label><input type="checkbox" id="log-dec-toggle"> 显示详细日志</label>
+          <button class="log-btn" id="btn-log-dec-copy">复制日志</button>
+        </div>
+        <pre class="log-box" id="log-dec" aria-hidden="true"></pre>
+      </section>
+
+      <!-- results -->
+      <div class="results-title">结果</div>
+      <div class="results-muted">每次加密或解密完成后会在这里生成一张结果卡片</div>
+      <div class="result-list" id="result-list"></div>
+
+      <p class="footer">
+        若报需要安全上下文 请使用 <b>HTTPS 或 http://localhost</b> 打开页面
+        若提示浏览器未启用 WebCrypto 请升级浏览器或系统版本
+      </p>
+    </div>
+
+    <div id="toast-clean" class="toast-clean" aria-live="polite">敏感数据已自动清理</div>
+  </body>
+
+</html>
