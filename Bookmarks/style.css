@@ -1,1 +1,669 @@
+/* iOS 地址栏伸缩时：min-height:100svh + height:auto，避免地址栏伸缩留白/跳动 */
+html {
+  min-height: 100svh;
+  height: auto;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
 
+body {
+  margin: 0;
+  min-height: 100svh;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  color: #111;
+  background: #f6f7f9;
+}
+
+/* 输入安全：iOS 输入控件保持 16px，避免系统自动放大 */
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+button {
+  font-size: 16px;
+}
+
+button,
+a,
+label {
+  touch-action: manipulation;
+}
+
+:root {
+  --border: #e2e4ea;
+  --border-strong: #d8dbe2;
+  --bg: #ffffff;
+  --muted: #6b7280;
+  --focus: rgba(11, 87, 208, .18);
+  --primary: #0b57d0;
+}
+
+::placeholder {
+  color: #9aa0a6;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(12px + env(safe-area-inset-top)) 12px 10px 12px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-left {
+  min-width: 0;
+}
+
+.app-title {
+  font-size: 18px;
+  margin: 0;
+}
+
+.app-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.app {
+  min-height: 100svh;
+  padding: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+/* 更轻的表单观感：边框更淡 + 聚焦高亮 */
+.input,
+.select,
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  padding: 11px 12px;
+  background: var(--bg);
+  color: #111;
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: rgba(11, 87, 208, .55);
+  box-shadow: 0 0 0 4px var(--focus);
+}
+
+.btn {
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: #111;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+}
+
+.btn-danger {
+  border-color: #f2b3b3;
+  background: #fff1f1;
+}
+
+.btn-file {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 主按钮：保存更明显（层级清晰） */
+.btn-primary {
+  background: var(--primary);
+  border-color: rgba(11, 87, 208, .8);
+  color: #fff;
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+/* 主页面批量操作条：hidden 时必须完全不占位（修复 hidden 被 display 覆盖） */
+.batchbar-main {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.batchbar-main:not([hidden]) {
+  display: flex;
+}
+
+.batchbar-main[hidden] {
+  display: none !important;
+}
+
+.batch-count {
+  font-size: 13px;
+  color: #333;
+}
+
+.batchbar-main-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.card-check {
+  margin-top: 4px;
+}
+
+.card-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 第一行：强制单行。标题过长时省略号，不把域名挤掉 */
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.25;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.card-title .link {
+  font: inherit;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.card-domain {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* 第二行：文件夹/标签/时间 */
+.meta {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: #444;
+  background: #fafafa;
+}
+
+.pill-pin {
+  border-color: #d6c7ff;
+  background: #f3efff;
+}
+
+.desc {
+  margin: 10px 0 0 0;
+  font-size: 13px;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 第三行：按钮区保持不变 */
+.card-actions {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.empty {
+  background: var(--bg);
+  border: 1px dashed var(--border-strong);
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+}
+
+.empty-title {
+  margin: 0;
+  font-size: 15px;
+}
+
+.empty-desc {
+  margin: 8px 0 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* 浮动按钮：透明背景（保留点击尺寸；描边+阴影保证可见） */
+.fab {
+  position: fixed;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 50;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 219, 226, .9);
+  background: transparent;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fab:active {
+  transform: translateY(1px);
+}
+
+.fab-menu {
+  left: 12px;
+  right: auto;
+  font-size: 24px;
+}
+
+/* 抽屉 shell：top/bottom + safe-area，避免 inset:0 与 max-height 冲突导致底部悬空 */
+.drawer-backdrop {
+  position: fixed;
+  z-index: 899;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, .35);
+}
+
+.drawer-shell {
+  position: fixed;
+  z-index: 900;
+  top: env(safe-area-inset-top);
+  left: 0;
+  right: 0;
+  bottom: env(safe-area-inset-bottom);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.drawer {
+  width: 100%;
+  max-width: 680px;
+  max-height: 70svh;
+  margin: 0 auto;
+  background: var(--bg);
+  border: 1px solid rgba(226, 228, 234, .85);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .14);
+  transform: translateY(18px);
+  opacity: 0;
+  transition: transform .18s ease, opacity .18s ease;
+}
+
+.drawer-shell.is-open .drawer {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* 抽屉标题栏更紧凑 + 基线更舒服 */
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.drawer-title {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.2;
+  letter-spacing: .2px;
+}
+
+/* 关闭按钮更轻、更小，不抢戏 */
+.icon-btn {
+  border: 1px solid rgba(216, 219, 226, .8);
+  background: var(--bg);
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+/* 抽屉内容区：唯一滚动容器 + 防滚穿 */
+.drawer-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+  box-sizing: border-box;
+  overscroll-behavior: contain;
+}
+
+/* 两列更像 iOS：更紧凑、更工整 */
+.control-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+}
+
+/* 分组层次：两组之间做细分隔 */
+.drawer-content .control-grid + .control-grid {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eceef3;
+}
+
+/* 抽屉内输入/选择：高度/圆角/内边距更统一 */
+.drawer-content .input,
+.drawer-content .select {
+  min-height: 48px;
+  border-radius: 14px;
+  padding: 12px 12px;
+}
+
+/* 抽屉内 select 更“按钮化”，同时统一焦点反馈 */
+.drawer-content .select {
+  background: var(--bg);
+}
+
+/* hidden 必须覆盖作者样式，否则会“关不掉/默认弹出” */
+.drawer-backdrop[hidden],
+.drawer-shell[hidden],
+.backdrop[hidden],
+.modal-shell[hidden] {
+  display: none;
+}
+
+/* 模态 shell：top/bottom + safe-area，避免 inset:0 的坑 */
+.backdrop {
+  position: fixed;
+  z-index: 998;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, .4);
+}
+
+.modal-shell {
+  position: fixed;
+  z-index: 999;
+  top: env(safe-area-inset-top);
+  left: 0;
+  right: 0;
+  bottom: env(safe-area-inset-bottom);
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* 模态：内容区唯一滚动容器 */
+.modal {
+  margin: auto;
+  width: 100%;
+  max-width: 680px;
+  max-height: 100%;
+  background: var(--bg);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .18);
+}
+
+/* 头部更省空间 */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* 模态内容区：唯一滚动容器 + 防滚穿 */
+.modal-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px 12px 12px;
+  box-sizing: border-box;
+  overscroll-behavior: contain;
+}
+
+/* 更紧凑的表单节奏 */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* label 更轻一点 */
+.label {
+  font-size: 12px;
+  color: #4b5563;
+  letter-spacing: .2px;
+}
+
+.hint {
+  min-height: 16px;
+  font-size: 12px;
+  color: #b00020;
+}
+
+/* 标签/文件夹：输入框 + 右侧选择框（更对齐更“对称”） */
+.field-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.field-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.field-row .select {
+  flex: 0 0 128px;
+  width: auto;
+}
+
+/* 分组分隔线 */
+.form-sep {
+  height: 1px;
+  background: #eceef3;
+  margin: 2px 0 6px 0;
+  border-radius: 999px;
+}
+
+/* 置顶：iOS 风格开关（修复圆点垂直错位） */
+.label-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 2px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 46px;
+  height: 28px;
+  border-radius: 999px;
+  background: #d1d5db;
+  border: 1px solid rgba(0, 0, 0, .06);
+  position: relative;
+  transition: background .18s ease;
+  flex: 0 0 auto;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+  transform: translate(0, -50%);
+  transition: transform .18s ease;
+}
+
+.switch:checked {
+  background: #34c759;
+}
+
+.switch:checked::after {
+  transform: translate(18px, -50%);
+}
+
+.switch:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(52, 199, 89, .18);
+}
+
+/* 保存/取消：加宽，平分整行 */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.form-actions .btn {
+  flex: 1;
+  padding: 12px 12px;
+}
+
+/* 滚动锁：保存 scrollY → body fixed/top 负值 */
+body.scroll-locked {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
