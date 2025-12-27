@@ -1,1 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
 
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>书签收藏</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="app-title">书签收藏</h1>
+        <p class="app-subtitle">本地存储 · 可导入导出</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn" id="btnBatchToggle" type="button" aria-pressed="false">批量</button>
+        <button class="btn" id="btnExport" type="button">导出</button>
+        <label class="btn btn-file" for="fileImport">导入</label>
+        <input id="fileImport" class="sr-only" type="file" accept="application/json" />
+      </div>
+    </header>
+
+    <main class="app" id="app">
+      <!-- 主页面批量操作条：仅批量模式显示；未进入批量时必须完全隐藏 -->
+      <section id="batchBarMain" class="batchbar-main" aria-label="批量操作" hidden>
+        <div class="batchbar-main-left">
+          <span id="batchCountMain" class="batch-count">已选 0</span>
+        </div>
+        <div class="batchbar-main-actions">
+          <button class="btn" id="btnSelectAll" type="button">全选</button>
+          <button class="btn btn-secondary" id="btnBatchAddTagMain" type="button">批量标签</button>
+          <button class="btn btn-danger" id="btnBatchDeleteMain" type="button">批量删除</button>
+        </div>
+      </section>
+
+      <section class="list-wrap" aria-label="书签列表">
+        <ul id="list" class="list"></ul>
+        <div id="empty" class="empty" hidden>
+          <p class="empty-title">这里还空着。</p>
+          <p class="empty-desc">右下角“＋”新增；左下角“☰”筛选。</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- 左下角☰：打开抽屉（筛选） -->
+    <button class="fab fab-menu" id="btnOpenDrawer" type="button" aria-label="筛选">☰</button>
+
+    <!-- 右下角➕：新增书签 -->
+    <button class="fab" id="fabAdd" type="button" aria-label="新增书签">＋</button>
+
+    <!-- drawer backdrop：抽屉遮罩层 -->
+    <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
+
+    <!-- drawer shell：fixed 外壳，safe-area 控制可视区（避免 inset:0 与 max-height 冲突） -->
+    <div id="drawerShell" class="drawer-shell" hidden>
+      <div id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" tabindex="-1">
+        <div class="drawer-header">
+          <h2 id="drawerTitle" class="drawer-title">筛选</h2>
+          <button class="icon-btn" type="button" id="btnDrawerClose" aria-label="关闭">✕</button>
+        </div>
+
+        <!-- drawer-content：抽屉唯一滚动容器 -->
+        <div class="drawer-content" id="drawerContent">
+          <div class="control-grid">
+            <input id="q" class="input" type="search" placeholder="搜索标题 / URL / 标签 / 文件夹…" autocomplete="off" />
+            <select id="sort" class="select" aria-label="排序">
+              <option value="updatedDesc">最近修改</option>
+              <option value="createdDesc">最近添加</option>
+              <option value="az">A-Z</option>
+            </select>
+          </div>
+
+          <div class="control-grid">
+            <select id="filterFolder" class="select" aria-label="按文件夹筛选">
+              <option value="">全部文件夹</option>
+            </select>
+
+            <select id="filterTag" class="select" aria-label="按标签筛选">
+              <option value="">全部标签</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- modal backdrop：书签新增/编辑遮罩层 -->
+    <div id="backdrop" class="backdrop" hidden></div>
+
+    <!-- dialog shell：fixed 外壳，safe-area 定位控制整体高度（避免 inset:0 与 max-height 冲突） -->
+    <div id="modalShell" class="modal-shell" hidden>
+      <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
+        <div class="modal-header">
+          <h2 id="modalTitle" class="modal-title">新增书签</h2>
+          <button class="icon-btn" type="button" id="btnClose" aria-label="关闭">✕</button>
+        </div>
+
+        <!-- .modal-content：唯一滚动容器 -->
+        <div class="modal-content" id="modalContent">
+          <form id="form" class="form" novalidate>
+            <div class="field">
+              <label class="label" for="title">标题</label>
+              <input id="title" class="input" name="title" type="text" required maxlength="120" autocomplete="off" />
+              <div class="hint" id="hintTitle" aria-live="polite"></div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="url">URL</label>
+              <input id="url" class="input" name="url" type="url" required placeholder="https://example.com" autocomplete="off" />
+              <div class="hint" id="hintUrl" aria-live="polite"></div>
+            </div>
+
+            <!-- 分组分隔：标题/URL vs 备注/分类（更快扫表单） -->
+            <div class="form-sep" aria-hidden="true"></div>
+
+            <div class="field">
+              <label class="label" for="desc">备注</label>
+              <textarea id="desc" class="textarea" name="desc" rows="3" maxlength="500"></textarea>
+            </div>
+
+            <!-- 标签：输入框 + 右侧选择框（选中后追加到输入框） -->
+            <div class="field">
+              <label class="label" for="tags">标签（用逗号分隔）</label>
+              <div class="field-row">
+                <input id="tags" class="input" name="tags" type="text" placeholder="学习, 工具, 灵感" autocomplete="off" />
+                <select id="tagPicker" class="select" aria-label="选择已有标签">
+                  <option value="">选择标签</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 文件夹：输入框 + 右侧选择框（选中后覆盖输入框） -->
+            <div class="field">
+              <label class="label" for="folder">文件夹</label>
+              <div class="field-row">
+                <input id="folder" class="input" name="folder" type="text" placeholder="比如：工作 / 学校 / 生活" maxlength="60" autocomplete="off" />
+                <select id="folderPicker" class="select" aria-label="选择已有文件夹">
+                  <option value="">选择文件夹</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 置顶：iOS 风格开关，整行可点 -->
+            <div class="field">
+              <label class="label-inline">
+                <span>置顶</span>
+                <input id="pinned" class="switch" type="checkbox" />
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-primary" id="btnSave" type="submit">保存</button>
+              <button class="btn btn-secondary" id="btnCancel" type="button">取消</button>
+            </div>
+
+            <input id="editingId" type="hidden" />
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+
+</html>
