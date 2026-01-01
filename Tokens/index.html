@@ -17,8 +17,8 @@
         <details class="formula">
           <summary class="formulaSum">查看计算公式</summary>
           <div class="formulaBody">
-            总Tokens (折算) = 分组倍率 × (输入tokens + 输出tokens × 补全倍率)<br>
-            总价格 (元) = (输入单价 × 输入tokens + 输出单价 × 输出tokens) / 1,000,000
+            总Tokens（折算）= 分组倍率 × (输入tokens + 输出tokens × 补全倍率)<br>
+            总价格(元) = 分组倍率 × (输入tokens × 输入单价 + 输出tokens × (输入单价 × 补全倍率)) / 1,000,000
           </div>
         </details>
       </header>
@@ -32,16 +32,16 @@
           <div class="row2">
             <div class="field">
               <label for="inTokens">输入 Tokens</label>
-              <input id="inTokens" type="number" min="0" step="1" value="1000" inputmode="numeric" />
+              <input id="inTokens" type="number" min="0" step="1" value="10000" inputmode="numeric" />
             </div>
             <div class="field">
               <label for="outTokens">输出 Tokens</label>
-              <input id="outTokens" type="number" min="0" step="1" value="500" inputmode="numeric" />
+              <input id="outTokens" type="number" min="0" step="1" value="1000000" inputmode="numeric" />
             </div>
           </div>
         </div>
 
-        <!-- 小卡片2：输入/输出 单价（已与倍率交换位置） -->
+        <!-- 小卡片2：输入单价 / 输出折算单价（= 输入单价 × 补全倍率） -->
         <div class="rowCard">
           <div class="row2">
             <div class="field">
@@ -49,8 +49,8 @@
               <input id="inPrice" type="number" min="0" step="0.0001" value="1" inputmode="decimal" />
             </div>
             <div class="field">
-              <label for="outPrice">输出单价 / 1M tokens</label>
-              <input id="outPrice" type="number" min="0" step="0.0001" value="3" inputmode="decimal" />
+              <label for="effOutPrice">输出折算单价 / 1M tokens</label>
+              <input id="effOutPrice" type="text" class="mono" value="-" readonly />
             </div>
           </div>
         </div>
@@ -65,7 +65,7 @@
       <section class="big" aria-label="价格 与 结果">
         <h2 class="bigTitle">价格 与 结果</h2>
 
-        <!-- 小卡片1：分组倍率/补全倍率（已与单价交换位置） -->
+        <!-- 小卡片1：分组倍率/补全倍率 -->
         <div class="rowCard">
           <div class="row2">
             <div class="field">
@@ -79,7 +79,7 @@
           </div>
         </div>
 
-        <!-- 小卡片2：输入/输出费用（已与主结果交换位置：放上面） -->
+        <!-- 小卡片2：输入/输出费用 -->
         <div class="rowCard">
           <div class="row2">
             <div class="valueBox valueSub">
@@ -93,7 +93,7 @@
           </div>
         </div>
 
-        <!-- 小卡片3：总 tokens / 总价格（主结果放下面） -->
+        <!-- 小卡片3：总 tokens / 总价格 -->
         <div class="rowCard">
           <div class="row2">
             <div class="valueBox valueMain">
