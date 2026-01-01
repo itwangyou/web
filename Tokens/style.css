@@ -1,224 +1,66 @@
-/* style.css */
+// app.js
 
-/* iOS 视口规则：避免地址栏伸缩时根元素锁死导致留白/跳动 */
-html {
-  min-height: 100svh;
-  height: auto;
-  -webkit-text-size-adjust: 100%;
+const state = {
+  // outPrice 被移除；effOutPrice 为只读展示（输入单价 × 补全倍率）
+  ids: ["inTokens", "outTokens", "groupMul", "compMul", "inPrice"],
+};
+
+const $ = (id) => document.getElementById(id);
+
+function n(v) {
+  const x = Number(v);
+  return Number.isFinite(x) ? x : 0;
 }
 
-:root {
-  color-scheme: light dark;
-
-  --max: 920px;
-  --pad: 14px;
-
-  --rBig: 16px;
-  --rRow: 14px;
-
-  --gap: 12px;
-  --b1: rgba(127, 127, 127, .22);
-  --b2: rgba(127, 127, 127, .18);
-
-  --bgBig: rgba(127, 127, 127, .06);
-  --bgRow: rgba(127, 127, 127, .04);
-
-  --shadow: 0 6px 18px rgba(0, 0, 0, .06);
-
-  --focus: rgba(80, 120, 255, .85);
-  --focusRing: rgba(80, 120, 255, .18);
+function fmt(num, digits = 10) {
+  const s = Number(num).toFixed(digits);
+  return s.replace(/\.?0+$/, "");
 }
 
-* {
-  box-sizing: border-box;
+function compute() {
+  const x = n($("inTokens").value);
+  const y = n($("outTokens").value);
+
+  const groupMul = n($("groupMul").value);
+  const compMul = n($("compMul").value);
+
+  const inPrice = n($("inPrice").value);
+
+  const billTokens = groupMul * (x + y * compMul);
+
+  // 新总价格：
+  // 分组倍率 × (输入tokens×输入单价 + 输出tokens×(输入单价×补全倍率)) / 1,000,000
+  const costIn = groupMul * (inPrice * x) / 1_000_000;
+  const costOut = groupMul * (inPrice * compMul * y) / 1_000_000;
+  const cost = costIn + costOut;
+
+  const effOutPrice = inPrice * compMul;
+
+  return { billTokens, cost, costIn, costOut, effOutPrice };
 }
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  line-height: 1.35;
-  touch-action: manipulation;
-  /* 默认禁用 iOS 双击缩放相关干扰 */
+function render() {
+  const r = compute();
+
+  $("billTokens").textContent = fmt(r.billTokens, 4);
+  $("costCNY").textContent = fmt(r.cost, 10);
+  $("costIn").textContent = fmt(r.costIn, 10);
+  $("costOut").textContent = fmt(r.costOut, 10);
+
+  $("effOutPrice").value = fmt(r.effOutPrice, 6);
 }
 
-.page {
-  min-height: 100svh;
-  max-width: var(--max);
-  margin: 20px auto;
-  padding: 0 var(--pad) 24px;
+function bind() {
+  state.ids.forEach((id) => {
+    $(id).addEventListener("input", render);
+  });
+
+  $("btnClearTokens").addEventListener("click", () => {
+    $("inTokens").value = 0;
+    $("outTokens").value = 0;
+    render();
+  });
 }
 
-.h1 {
-  margin: 0 0 10px;
-  font-size: 20px;
-}
-
-/* 公式折叠区：默认收起，避免首屏像说明书 */
-.formula {
-  border: 1px solid var(--b1);
-  border-radius: 12px;
-  background: rgba(127, 127, 127, .03);
-  padding: 10px 12px;
-  margin: 0 0 14px;
-}
-
-.formulaSum {
-  cursor: pointer;
-  font-size: 13px;
-  opacity: .85;
-  list-style: none;
-}
-
-.formulaSum::-webkit-details-marker {
-  display: none;
-}
-
-.formulaBody {
-  margin-top: 8px;
-  font-size: 13px;
-  opacity: .75;
-}
-
-.big {
-  border: 1px solid var(--b1);
-  border-radius: var(--rBig);
-  padding: 14px;
-  background: var(--bgBig);
-  box-shadow: var(--shadow);
-  margin-bottom: 12px;
-}
-
-.bigTitle {
-  margin: 0 0 10px;
-  font-size: 14px;
-  letter-spacing: .2px;
-  opacity: .88;
-}
-
-.rowCard {
-  border: 1px solid var(--b2);
-  border-radius: var(--rRow);
-  padding: 12px;
-  background: var(--bgRow);
-}
-
-.rowCard + .rowCard {
-  margin-top: 10px;
-}
-
-/* 两列平分：手机也保持一行两列 */
-.row2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--gap);
-  align-items: start;
-}
-
-.row2 > * {
-  min-width: 0;
-}
-
-/* 输入安全：iOS 聚焦不放大必须 >=16px */
-input,
-button,
-textarea,
-select {
-  font-size: 16px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-label {
-  font-size: 13px;
-  opacity: .85;
-}
-
-input {
-  width: 100%;
-  padding: 10px 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(127, 127, 127, .35);
-  background: rgba(255, 255, 255, .65);
-  color: inherit;
-  outline: none;
-}
-
-input:focus {
-  border-color: var(--focus);
-  box-shadow: 0 0 0 3px var(--focusRing);
-}
-
-.btnPrimary {
-  width: 100%;
-  padding: 12px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(127, 127, 127, .35);
-  background: rgba(255, 255, 255, .55);
-  color: inherit;
-  cursor: pointer;
-}
-
-.btnPrimary:hover {
-  filter: brightness(1.05);
-}
-
-.valueBox {
-  border: 1px solid rgba(127, 127, 127, .20);
-  border-radius: 12px;
-  padding: 12px;
-  background: rgba(127, 127, 127, .02);
-}
-
-.k {
-  font-size: 12px;
-  opacity: .72;
-  margin-bottom: 8px;
-}
-
-.valueMain .v {
-  font-size: 20px;
-  font-weight: 750;
-  letter-spacing: .2px;
-}
-
-.valueSub .v2 {
-  font-size: 15px;
-  font-weight: 650;
-  opacity: .92;
-}
-
-.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-}
-
-/* 极窄屏：仍两列，但缩小间距与内边距 */
-@media (max-width: 420px) {
-  .big {
-    padding: 12px;
-  }
-
-  .rowCard {
-    padding: 10px;
-  }
-
-  .row2 {
-    gap: 10px;
-  }
-}
-
-/* 深色模式下输入背景更协调 */
-@media (prefers-color-scheme: dark) {
-  input {
-    background: rgba(0, 0, 0, .25);
-    border-color: rgba(255, 255, 255, .22);
-  }
-
-  .btnPrimary {
-    background: rgba(0, 0, 0, .18);
-    border-color: rgba(255, 255, 255, .20);
-  }
-}
+bind();
+render();
