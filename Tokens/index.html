@@ -1,1 +1,115 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="zh-CN">
 
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Tokens & 费用计算器</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+
+  <body>
+    <main class="page">
+      <header class="head">
+        <h1 class="h1">Tokens & 费用计算器</h1>
+
+        <details class="formula">
+          <summary class="formulaSum">查看计算公式</summary>
+          <div class="formulaBody">
+            总Tokens (折算) = 分组倍率 × (输入tokens + 输出tokens × 补全倍率)<br>
+            总价格 (元) = (输入单价 × 输入tokens + 输出单价 × 输出tokens) / 1,000,000
+          </div>
+        </details>
+      </header>
+
+      <!-- 大卡片1 -->
+      <section class="big" aria-label="Tokens 与 倍率">
+        <h2 class="bigTitle">Tokens 与 倍率</h2>
+
+        <!-- 小卡片1：输入/输出 tokens -->
+        <div class="rowCard">
+          <div class="row2">
+            <div class="field">
+              <label for="inTokens">输入 Tokens</label>
+              <input id="inTokens" type="number" min="0" step="1" value="1000" inputmode="numeric" />
+            </div>
+            <div class="field">
+              <label for="outTokens">输出 Tokens</label>
+              <input id="outTokens" type="number" min="0" step="1" value="500" inputmode="numeric" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 小卡片2：输入/输出 单价（已与倍率交换位置） -->
+        <div class="rowCard">
+          <div class="row2">
+            <div class="field">
+              <label for="inPrice">输入单价 / 1M tokens</label>
+              <input id="inPrice" type="number" min="0" step="0.0001" value="1" inputmode="decimal" />
+            </div>
+            <div class="field">
+              <label for="outPrice">输出单价 / 1M tokens</label>
+              <input id="outPrice" type="number" min="0" step="0.0001" value="3" inputmode="decimal" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 小卡片3：清空 tokens -->
+        <div class="rowCard">
+          <button id="btnClearTokens" class="btnPrimary" type="button">清空 tokens</button>
+        </div>
+      </section>
+
+      <!-- 大卡片2 -->
+      <section class="big" aria-label="价格 与 结果">
+        <h2 class="bigTitle">价格 与 结果</h2>
+
+        <!-- 小卡片1：分组倍率/补全倍率（已与单价交换位置） -->
+        <div class="rowCard">
+          <div class="row2">
+            <div class="field">
+              <label for="groupMul">分组倍率</label>
+              <input id="groupMul" type="number" min="0" step="0.01" value="1" inputmode="decimal" />
+            </div>
+            <div class="field">
+              <label for="compMul">补全倍率</label>
+              <input id="compMul" type="number" min="0" step="0.01" value="6" inputmode="decimal" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 小卡片2：输入/输出费用（已与主结果交换位置：放上面） -->
+        <div class="rowCard">
+          <div class="row2">
+            <div class="valueBox valueSub">
+              <div class="k">输入费用（元）</div>
+              <div class="v2 mono" id="costIn">-</div>
+            </div>
+            <div class="valueBox valueSub">
+              <div class="k">输出费用（元）</div>
+              <div class="v2 mono" id="costOut">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 小卡片3：总 tokens / 总价格（主结果放下面） -->
+        <div class="rowCard">
+          <div class="row2">
+            <div class="valueBox valueMain">
+              <div class="k">总 Tokens（折算后）</div>
+              <div class="v mono" id="billTokens">-</div>
+            </div>
+            <div class="valueBox valueMain">
+              <div class="k">总价格（元）</div>
+              <div class="v mono" id="costCNY">-</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+
+</html>
