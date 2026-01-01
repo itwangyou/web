@@ -26,7 +26,7 @@ function compute() {
   const inPrice = n($("inPrice").value);
   const outPrice = n($("outPrice").value);
 
-  const billTokens = groupMul * (x + y * compMul);
+  const billTokens = x + y;
 
   const costIn = (inPrice * x) / 1_000_000;
   const costOut = (outPrice * y) / 1_000_000;
